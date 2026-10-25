@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--
+        SECURITY MODEL
+        ==============
+        Layer 1 (global, coarse): one group, "Wealth Portfolio User", which every
+          internal user receives. It only opens the app and grants the *maximum*
+          CRUD the model allows (see ir.model.access.csv).
+        Layer 2 (per portfolio, fine): the role stored in portfolio.member
+          (owner / editor / viewer). Record rules below decide, per operation,
+          which records the user's role lets them touch.
+
+        A user's power over a portfolio comes ONLY from their membership row
+        there, never from a global group. Rules of the same group and operation
+        are OR-ed by Odoo, so each operation gets exactly one rule.
+    -->
+
+    <record id="module_category_wealth_portfolio" model="ir.module.category">
+        <field name="name">Wealth Portfolio</field>
+        <field name="sequence">15</field>
+    </record>
+
+    <record id="group_portfolio_user" model="res.groups">
+        <field name="name">Wealth Portfolio User</field>
+        <field name="category_id" ref="module_category_wealth_portfolio"/>
+        <field name="comment">Can use the app. What they can see or change is decided per portfolio by their role there.</field>
+    </record>
+
+    <!-- every internal user gets the app; membership still gates all data -->
+    <record id="base.group_user" model="res.groups">
+        <field name="implied_ids" eval="[Command.link(ref('wealth_portfolio.group_portfolio_user'))]"/>
+    </record>
+
+    <!-- ===================== portfolio.portfolio ===================== -->
+    <record id="rule_portfolio_read" model="ir.rule">
+        <field name="name">Portfolio: members read</field>
+        <field name="model_id" ref="model_portfolio_portfolio"/>
+        <field name="groups" eval="[Command.link(ref('group_portfolio_user'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="domain_force">[('member_ids.user_id', '=', user.id)]</field>
+    </record>
+    <record id="rule_portfolio_create" model="ir.rule">
+        <field name="name">Portfolio: anyone may create (creator becomes owner)</field>
+        <field name="model_id" ref="model_portfolio_portfolio"/>
+        <field name="groups" eval="[Command.link(ref('group_portfolio_user'))]"/>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+    <record id="rule_portfolio_write" model="ir.rule">
+        <field name="name">Portfolio: owners edit and archive</field>
+        <field name="model_id" ref="model_portfolio_portfolio"/>
+        <field name="groups" eval="[Command.link(ref('group_portfolio_user'))]"/>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="True"/>
+        <field name="domain_force">[('member_ids', 'any', [('user_id', '=', user.id), ('role', '=', 'owner')])]</field>
+    </record>
+
+    <!-- ======================= portfolio.member ======================= -->
+    <record id="rule_member_read" model="ir.rule">
+        <field name="name">Member: read the roster of your portfolios</field>
+        <field name="model_id" ref="model_portfolio_member"/>
+        <field name="groups" eval="[Command.link(ref('group_portfolio_user'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="domain_force">[('portfolio_id.member_ids.user_id', '=', user.id)]</field>
+    </record>
+    <record id="rule_member_manage" model="ir.rule">
+        <field name="name">Member: only owners manage the roster</field>
+        <field name="model_id" ref="model_portfolio_member"/>
+        <field name="groups" eval="[Command.link(ref('group_portfolio_user'))]"/>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+        <field name="domain_force">[('portfolio_id.member_ids', 'any', [('user_id', '=', user.id), ('role', '=', 'owner')])]</field>
+    </record>
+
+    <!-- ======================== portfolio.asset ======================== -->
+    <record id="rule_asset_read" model="ir.rule">
+        <field name="name">Asset: members read</field>
+        <field name="model_id" ref="model_portfolio_asset"/>
+        <field name="groups" eval="[Command.link(ref('group_portfolio_user'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="domain_force">[('portfolio_id.member_ids.user_id', '=', user.id)]</field>
+    </record>
+    <record id="rule_asset_write" model="ir.rule">
+        <field name="name">Asset: owners and editors create and edit</field>
+        <field name="model_id" ref="model_portfolio_asset"/>
+        <field name="groups" eval="[Command.link(ref('group_portfolio_user'))]"/>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="domain_force">[('portfolio_id.member_ids', 'any', [('user_id', '=', user.id), ('role', 'in', ['owner', 'editor'])])]</field>
+    </record>
+    <record id="rule_asset_unlink" model="ir.rule">
+        <field name="name">Asset: only owners delete</field>
+        <field name="model_id" ref="model_portfolio_asset"/>
+        <field name="groups" eval="[Command.link(ref('group_portfolio_user'))]"/>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="True"/>
+        <field name="domain_force">[('portfolio_id.member_ids', 'any', [('user_id', '=', user.id), ('role', '=', 'owner')])]</field>
+    </record>
+
+    <!-- ===================== portfolio.transaction ===================== -->
+    <record id="rule_transaction_read" model="ir.rule">
+        <field name="name">Ledger: members read</field>
+        <field name="model_id" ref="model_portfolio_transaction"/>
+        <field name="groups" eval="[Command.link(ref('group_portfolio_user'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="domain_force">[('portfolio_id.member_ids.user_id', '=', user.id)]</field>
+    </record>
+    <record id="rule_transaction_create" model="ir.rule">
+        <field name="name">Ledger: owners and editors append</field>
+        <field name="model_id" ref="model_portfolio_transaction"/>
+        <field name="groups" eval="[Command.link(ref('group_portfolio_user'))]"/>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="domain_force">[('portfolio_id.member_ids', 'any', [('user_id', '=', user.id), ('role', 'in', ['owner', 'editor'])])]</field>
+    </record>
+</odoo>

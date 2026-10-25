@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+    <t t-name="wealth_portfolio.Dashboard">
+        <div class="o_wp_dashboard o_action">
+            <header class="o_wp_head">
+                <div>
+                    <h1 class="o_wp_title">Wealth overview</h1>
+                    <p class="o_wp_sub text-muted">
+                        <t t-if="state.updatedAt">Updated <t t-out="updatedLabel"/> · refreshes automatically when values change</t>
+                        <t t-else="">Loading…</t>
+                    </p>
+                </div>
+                <div class="o_wp_head_actions">
+                    <span t-if="state.refreshing" class="o_wp_refreshing text-muted" role="status">
+                        <i class="fa fa-circle-o-notch fa-spin"/> Refreshing
+                    </span>
+                    <button class="btn btn-primary" t-on-click="newPortfolio">New portfolio</button>
+                </div>
+            </header>
+
+            <div t-if="state.error" class="alert alert-danger o_wp_error" role="alert">
+                <strong>Something went wrong.</strong>
+                <span t-out="state.error"/>
+                <button class="btn btn-link p-0 ms-2" t-on-click="() => this.load()">Retry</button>
+            </div>
+
+            <div t-if="state.loading" class="o_wp_loading" role="status" aria-label="Loading portfolios">
+                <div class="o_wp_skeleton"/>
+                <div class="o_wp_skeleton"/>
+            </div>
+
+            <t t-elif="!state.portfolios.length and !state.error">
+                <div class="o_wp_empty">
+                    <h2>No portfolio yet</h2>
+                    <p class="text-muted">Create one to start tracking assets. You will be its owner and can invite others.</p>
+                    <button class="btn btn-primary" t-on-click="newPortfolio">Create a portfolio</button>
+                </div>
+            </t>
+
+            <t t-else="">
+                <section class="o_wp_totals" t-if="state.portfolios.length">
+                    <div t-foreach="totalsByCurrency" t-as="total" t-key="total.portfolio.currency_id" class="o_wp_total">
+                        <span class="o_wp_label">Net worth (<t t-out="total.portfolio.currency_name"/>)</span>
+                        <span class="o_wp_big" t-out="money(total.value, total.portfolio)"/>
+                        <span t-attf-class="o_wp_pnl o_wp_{{ total.pnl > 0 ? 'up' : (total.pnl lt 0 ? 'down' : 'flat') }}"
+                              t-out="signedMoney(total.pnl, total.portfolio) + ' unrealized'"/>
+                    </div>
+                </section>
+
+                <section class="o_wp_cards">
+                    <article t-foreach="state.portfolios" t-as="p" t-key="p.id"
+                             t-attf-class="o_wp_card {{ state.flashed[p.id] ? 'o_wp_flash_' + state.flashed[p.id] : '' }}">
+                        <div class="o_wp_card_head">
+                            <a href="#" class="o_wp_card_name" t-on-click.prevent="() => this.openPortfolio(p)" t-out="p.name"/>
+                            <span t-attf-class="badge o_wp_role o_wp_role_{{ p.role }}" t-out="p.role"/>
+                        </div>
+
+                        <div class="o_wp_value" t-out="money(p.total_value, p)"/>
+                        <div t-attf-class="o_wp_pnl o_wp_{{ trend(p) }}">
+                            <i t-attf-class="fa {{ trend(p) === 'up' ? 'fa-caret-up' : (trend(p) === 'down' ? 'fa-caret-down' : 'fa-minus') }}" aria-hidden="true"/>
+                            <span t-out="signedMoney(p.pnl, p)"/>
+                            <span t-if="p.pnl_pct !== null" class="ms-1" t-out="'(' + pct(p.pnl_pct) + ')'"/>
+                            <span class="visually-hidden"> unrealized profit or loss</span>
+                        </div>
+
+                        <t t-if="p.allocation.length">
+                            <div class="o_wp_alloc_bar" role="img"
+                                 t-att-aria-label="'Allocation: ' + p.allocation.map(a => a.label + ' ' + a.pct.toFixed(0) + '%').join(', ')">
+                                <span t-foreach="p.allocation" t-as="a" t-key="a.type"
+                                      t-attf-class="o_wp_seg o_wp_seg_{{ a.type }}"
+                                      t-att-style="'width:' + a.pct + '%'"
+                                      t-att-title="a.label + ': ' + money(a.value, p)"/>
+                            </div>
+                            <ul class="o_wp_legend">
+                                <li t-foreach="p.allocation" t-as="a" t-key="a.type">
+                                    <span t-attf-class="o_wp_dot o_wp_seg_{{ a.type }}"/>
+                                    <span t-out="a.label"/>
+                                    <span class="text-muted" t-out="a.pct.toFixed(0) + '%'"/>
+                                </li>
+                            </ul>
+                        </t>
+                        <p t-else="" class="text-muted o_wp_noassets">No valued assets yet.</p>
+
+                        <div class="o_wp_card_foot">
+                            <span class="text-muted">
+                                <t t-out="p.asset_count"/> asset<t t-if="p.asset_count !== 1">s</t>
+                                <t t-if="p.last_price_update"> · prices as of <t t-out="localTime(p.last_price_update)"/></t>
+                            </span>
+                            <span t-if="p.sync_errors" class="o_wp_warn">
+                                <i class="fa fa-exclamation-triangle" aria-hidden="true"/>
+                                <t t-out="p.sync_errors"/> price problem<t t-if="p.sync_errors !== 1">s</t>
+                            </span>
+                            <button t-if="canEdit(p)" class="btn btn-sm btn-secondary"
+                                    t-att-disabled="state.syncing === p.id"
+                                    t-on-click="() => this.syncPrices(p)">
+                                <t t-if="state.syncing === p.id"><i class="fa fa-circle-o-notch fa-spin"/> Syncing</t>
+                                <t t-else="">Sync prices</t>
+                            </button>
+                        </div>
+                    </article>
+                </section>
+            </t>
+        </div>
+    </t>
+</templates>

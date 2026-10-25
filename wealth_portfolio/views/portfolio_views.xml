@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_portfolio_list" model="ir.ui.view">
+        <field name="name">portfolio.portfolio.list</field>
+        <field name="model">portfolio.portfolio</field>
+        <field name="arch" type="xml">
+            <list string="Portfolios">
+                <field name="name"/>
+                <field name="my_role" widget="badge"
+                       decoration-success="my_role == 'owner'"
+                       decoration-info="my_role == 'editor'"
+                       decoration-muted="my_role == 'viewer'"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="total_value"/>
+                <field name="unrealized_pnl"
+                       decoration-success="unrealized_pnl &gt; 0"
+                       decoration-danger="unrealized_pnl &lt; 0"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_portfolio_form" model="ir.ui.view">
+        <field name="name">portfolio.portfolio.form</field>
+        <field name="model">portfolio.portfolio</field>
+        <field name="arch" type="xml">
+            <form string="Portfolio">
+                <header>
+                    <button name="action_sync_prices" type="object" string="Sync crypto prices"
+                            class="btn-secondary"
+                            invisible="not id or my_role not in ('owner', 'editor')"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <field name="active" invisible="1"/>
+                    <field name="my_role" invisible="1"/>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="Portfolio name" readonly="id and my_role != 'owner'"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="currency_id" readonly="id"/>
+                            <field name="my_role" widget="badge" invisible="not id"/>
+                        </group>
+                        <group>
+                            <field name="total_value"/>
+                            <field name="total_cost"/>
+                            <field name="unrealized_pnl"
+                                   decoration-success="unrealized_pnl &gt; 0"
+                                   decoration-danger="unrealized_pnl &lt; 0"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Assets" name="assets">
+                            <field name="asset_ids" readonly="1">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="asset_type"/>
+                                    <field name="quantity" digits="[16, 4]"/>
+                                    <field name="current_price" digits="[16, 4]"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                    <field name="current_value" sum="Total"/>
+                                    <field name="unrealized_pnl"
+                                           decoration-success="unrealized_pnl &gt; 0"
+                                           decoration-danger="unrealized_pnl &lt; 0"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Ledger" name="ledger">
+                            <field name="transaction_ids" readonly="1">
+                                <list>
+                                    <field name="date"/>
+                                    <field name="name"/>
+                                    <field name="asset_id"/>
+                                    <field name="tx_type"/>
+                                    <field name="quantity" digits="[16, 4]"/>
+                                    <field name="price" digits="[16, 4]"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                    <field name="total_amount"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Members" name="members" invisible="not id">
+                            <field name="member_ids" readonly="my_role != 'owner'">
+                                <list editable="bottom">
+                                    <field name="user_id"/>
+                                    <field name="role"/>
+                                </list>
+                            </field>
+                            <div class="text-muted">
+                                Owners manage members and the portfolio itself. Editors record assets and transactions.
+                                Viewers have read-only access.
+                            </div>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_portfolio_search" model="ir.ui.view">
+        <field name="name">portfolio.portfolio.search</field>
+        <field name="model">portfolio.portfolio</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <filter name="mine_owned" string="Owned by me" domain="[('member_ids', 'any', [('user_id', '=', uid), ('role', '=', 'owner')])]"/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_portfolio" model="ir.actions.act_window">
+        <field name="name">Portfolios</field>
+        <field name="res_model">portfolio.portfolio</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create your first portfolio</p>
+            <p>You become its owner and can then invite editors and viewers.</p>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,125 @@
+// Asset-class colours. Never the only signal: every segment also has a text legend.
+$wp-stock: #3b6ea8;
+$wp-crypto: #c98a1b;
+$wp-real_estate: #4f8a63;
+$wp-cash: #7a8794;
+$wp-up: #1f7a46;
+$wp-down: #b3372f;
+
+.o_wp_dashboard {
+    padding: 1.5rem 2rem 3rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    overflow-y: auto;
+
+    .o_wp_head {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 1.25rem;
+    }
+    .o_wp_title { font-size: 1.6rem; font-weight: 600; margin: 0; }
+    .o_wp_sub { margin: .25rem 0 0; }
+    .o_wp_head_actions { display: flex; align-items: center; gap: .75rem; }
+
+    .o_wp_totals {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 2.5rem;
+        padding: 1rem 0 1.5rem;
+        border-bottom: 1px solid var(--border-color, #dee2e6);
+        margin-bottom: 1.5rem;
+    }
+    .o_wp_total { display: flex; flex-direction: column; }
+    .o_wp_label { font-size: .8rem; text-transform: uppercase; letter-spacing: .05em; color: #6c757d; }
+    .o_wp_big { font-size: 2.2rem; font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1.2; }
+
+    .o_wp_cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 1.25rem;
+    }
+    .o_wp_card {
+        border: 1px solid var(--border-color, #dee2e6);
+        border-radius: .6rem;
+        background: var(--o-view-background-color, #fff);
+        padding: 1.1rem 1.25rem;
+        display: flex;
+        flex-direction: column;
+        gap: .5rem;
+        transition: background-color .6s ease, box-shadow .2s ease;
+        &:hover { box-shadow: 0 2px 10px rgba(0, 0, 0, .06); }
+    }
+    .o_wp_flash_up { background-color: rgba($wp-up, .12); }
+    .o_wp_flash_down { background-color: rgba($wp-down, .12); }
+
+    .o_wp_card_head { display: flex; justify-content: space-between; align-items: center; gap: .5rem; }
+    .o_wp_card_name { font-weight: 600; font-size: 1.05rem; color: inherit; text-decoration: none;
+        &:hover { text-decoration: underline; } }
+    .o_wp_role { text-transform: capitalize; font-weight: 500; border: 1px solid currentColor; background: transparent; }
+    .o_wp_role_owner { color: $wp-up; }
+    .o_wp_role_editor { color: $wp-stock; }
+    .o_wp_role_viewer { color: $wp-cash; }
+
+    .o_wp_value { font-size: 1.75rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+    .o_wp_pnl { font-variant-numeric: tabular-nums; font-weight: 500;
+        i { margin-right: .3rem; } }
+    .o_wp_up { color: $wp-up; }
+    .o_wp_down { color: $wp-down; }
+    .o_wp_flat { color: #6c757d; }
+
+    .o_wp_alloc_bar {
+        display: flex;
+        height: .6rem;
+        border-radius: .3rem;
+        overflow: hidden;
+        background: #e9ecef;
+        margin-top: .35rem;
+    }
+    .o_wp_seg_stock { background: $wp-stock; }
+    .o_wp_seg_crypto { background: $wp-crypto; }
+    .o_wp_seg_real_estate { background: $wp-real_estate; }
+    .o_wp_seg_cash { background: $wp-cash; }
+    .o_wp_legend {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: .25rem .9rem;
+        font-size: .85rem;
+        li { display: inline-flex; align-items: center; gap: .3rem; }
+    }
+    .o_wp_dot { display: inline-block; width: .6rem; height: .6rem; border-radius: 50%; }
+
+    .o_wp_card_foot {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: .5rem;
+        margin-top: auto;
+        padding-top: .6rem;
+        border-top: 1px solid var(--border-color, #eef0f2);
+        font-size: .82rem;
+    }
+    .o_wp_warn { color: #8a5a00; font-weight: 500; }
+
+    .o_wp_empty { text-align: center; padding: 4rem 1rem; }
+    .o_wp_loading { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.25rem; }
+    .o_wp_skeleton {
+        height: 11rem;
+        border-radius: .6rem;
+        background: linear-gradient(90deg, #eef0f2 25%, #f7f8f9 50%, #eef0f2 75%);
+        background-size: 200% 100%;
+        animation: o_wp_shimmer 1.4s infinite linear;
+    }
+}
+
+@keyframes o_wp_shimmer { to { background-position: -200% 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+    .o_wp_dashboard .o_wp_skeleton { animation: none; }
+    .o_wp_dashboard .o_wp_card { transition: none; }
+}

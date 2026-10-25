@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_asset_list" model="ir.ui.view">
+        <field name="name">portfolio.asset.list</field>
+        <field name="model">portfolio.asset</field>
+        <field name="arch" type="xml">
+            <list string="Assets">
+                <field name="portfolio_id"/>
+                <field name="name"/>
+                <field name="asset_type"/>
+                <field name="quantity" digits="[16, 4]"/>
+                <field name="avg_cost" digits="[16, 6]"/>
+                <field name="current_price" digits="[16, 6]"/>
+                <field name="price_updated_at" optional="show"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="current_value" sum="Total"/>
+                <field name="unrealized_pnl"
+                       decoration-success="unrealized_pnl &gt; 0"
+                       decoration-danger="unrealized_pnl &lt; 0"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_asset_form" model="ir.ui.view">
+        <field name="name">portfolio.asset.form</field>
+        <field name="model">portfolio.asset</field>
+        <field name="arch" type="xml">
+            <form string="Asset">
+                <header>
+                    <button name="action_new_transaction" type="object" string="Record transaction"
+                            class="btn-primary"
+                            invisible="not id or my_role not in ('owner', 'editor')"/>
+                    <button name="action_sync_prices" type="object" string="Sync price"
+                            class="btn-secondary"
+                            invisible="not id or my_role not in ('owner', 'editor') or not ((asset_type == 'crypto' and coingecko_id) or (asset_type == 'stock' and symbol))"/>
+                </header>
+                <sheet>
+                    <field name="my_role" invisible="1"/>
+                    <div class="alert alert-warning" role="alert" invisible="not sync_error">
+                        Last price sync problem: <field name="sync_error" class="oe_inline"/>
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="e.g. Bitcoin, Apple Inc., Flat in Berlin"
+                                   readonly="my_role == 'viewer'"/></h1>
+                    </div>
+                    <group>
+                        <group string="Definition">
+                            <field name="portfolio_id" readonly="id"/>
+                            <field name="asset_type" readonly="my_role == 'viewer'"/>
+                            <field name="symbol" invisible="asset_type != 'stock'"
+                                   readonly="my_role == 'viewer'" placeholder="AAPL"/>
+                            <field name="coingecko_id" invisible="asset_type != 'crypto'"
+                                   readonly="my_role == 'viewer'" placeholder="bitcoin"/>
+                        </group>
+                        <group string="Valuation">
+                            <field name="current_price" digits="[16, 6]" readonly="asset_type == 'cash' or my_role == 'viewer'"/>
+                            <field name="price_source"/>
+                            <field name="price_updated_at"/>
+                        </group>
+                    </group>
+                    <group string="Position (derived from the ledger)">
+                        <group>
+                            <field name="quantity" digits="[16, 4]"/>
+                            <field name="avg_cost" digits="[16, 6]"/>
+                        </group>
+                        <group>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="cost_basis"/>
+                            <field name="current_value"/>
+                            <field name="unrealized_pnl"
+                                   decoration-success="unrealized_pnl &gt; 0"
+                                   decoration-danger="unrealized_pnl &lt; 0"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Ledger" name="ledger">
+                            <field name="transaction_ids" readonly="1">
+                                <list>
+                                    <field name="date"/>
+                                    <field name="name"/>
+                                    <field name="tx_type"/>
+                                    <field name="quantity" digits="[16, 4]"/>
+                                    <field name="price" digits="[16, 6]"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                    <field name="total_amount"/>
+                                    <field name="is_reversed" widget="boolean" string="Reversed"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_asset_search" model="ir.ui.view">
+        <field name="name">portfolio.asset.search</field>
+        <field name="model">portfolio.asset</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="portfolio_id"/>
+                <filter name="crypto" string="Crypto" domain="[('asset_type', '=', 'crypto')]"/>
+                <filter name="stock" string="Stocks" domain="[('asset_type', '=', 'stock')]"/>
+                <filter name="real_estate" string="Real Estate" domain="[('asset_type', '=', 'real_estate')]"/>
+                <filter name="cash" string="Cash" domain="[('asset_type', '=', 'cash')]"/>
+                <separator/>
+                <filter name="sync_problem" string="Price sync problem" domain="[('sync_error', '!=', False)]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_portfolio" string="Portfolio" context="{'group_by': 'portfolio_id'}"/>
+                    <filter name="group_type" string="Type" context="{'group_by': 'asset_type'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_asset" model="ir.actions.act_window">
+        <field name="name">Assets</field>
+        <field name="res_model">portfolio.asset</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

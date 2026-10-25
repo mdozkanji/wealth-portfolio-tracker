@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_portfolio_portfolio_user,portfolio.portfolio user,model_portfolio_portfolio,group_portfolio_user,1,1,1,1
+access_portfolio_member_user,portfolio.member user,model_portfolio_member,group_portfolio_user,1,1,1,1
+access_portfolio_asset_user,portfolio.asset user,model_portfolio_asset,group_portfolio_user,1,1,1,1
+access_portfolio_transaction_user,portfolio.transaction user,model_portfolio_transaction,group_portfolio_user,1,0,1,0

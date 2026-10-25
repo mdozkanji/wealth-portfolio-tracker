@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_dashboard" model="ir.actions.client">
+        <field name="name">Dashboard</field>
+        <field name="tag">wealth_portfolio.dashboard</field>
+    </record>
+
+    <menuitem id="menu_wealth_root" name="Wealth Tracker"
+              web_icon="wealth_portfolio,static/description/icon.png"
+              groups="group_portfolio_user" sequence="40"/>
+    <menuitem id="menu_dashboard" name="Dashboard" parent="menu_wealth_root"
+              action="action_dashboard" sequence="10"/>
+    <menuitem id="menu_portfolios" name="Portfolios" parent="menu_wealth_root"
+              action="action_portfolio" sequence="20"/>
+    <menuitem id="menu_assets" name="Assets" parent="menu_wealth_root"
+              action="action_asset" sequence="30"/>
+    <menuitem id="menu_ledger" name="Ledger" parent="menu_wealth_root"
+              action="action_transaction" sequence="40"/>
+</odoo>

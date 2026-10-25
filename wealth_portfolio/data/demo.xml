@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Demo users: log in as alice / bob / carol (password = login) to see the roles in action. -->
+    <record id="demo_user_alice" model="res.users">
+        <field name="name">Alice (demo owner)</field>
+        <field name="login">alice</field>
+        <field name="password">alice</field>
+        <field name="email">alice@example.com</field>
+        <field name="groups_id" eval="[Command.set([ref('base.group_user')])]"/>
+    </record>
+    <record id="demo_user_bob" model="res.users">
+        <field name="name">Bob (demo editor)</field>
+        <field name="login">bob</field>
+        <field name="password">bob</field>
+        <field name="email">bob@example.com</field>
+        <field name="groups_id" eval="[Command.set([ref('base.group_user')])]"/>
+    </record>
+    <record id="demo_user_carol" model="res.users">
+        <field name="name">Carol (demo viewer)</field>
+        <field name="login">carol</field>
+        <field name="password">carol</field>
+        <field name="email">carol@example.com</field>
+        <field name="groups_id" eval="[Command.set([ref('base.group_user')])]"/>
+    </record>
+
+    <!-- Household portfolio shared by all three, with different roles.
+         Members are created inline so the portfolio has its owner from the start. -->
+    <record id="demo_portfolio_family" model="portfolio.portfolio">
+        <field name="name">Family Wealth</field>
+        <field name="currency_id" ref="base.USD"/>
+        <field name="member_ids" eval="[
+            Command.create({'user_id': ref('demo_user_alice'), 'role': 'owner'}),
+            Command.create({'user_id': ref('demo_user_bob'), 'role': 'editor'}),
+            Command.create({'user_id': ref('demo_user_carol'), 'role': 'viewer'}),
+        ]"/>
+    </record>
+
+    <!-- Alice's private portfolio: nobody else can see it -->
+    <record id="demo_portfolio_private" model="portfolio.portfolio">
+        <field name="name">Alice Private</field>
+        <field name="currency_id" ref="base.USD"/>
+        <field name="member_ids" eval="[Command.create({'user_id': ref('demo_user_alice'), 'role': 'owner'})]"/>
+    </record>
+
+    <!-- Assets: prices are illustrative; crypto is re-priced by the CoinGecko cron when online -->
+    <record id="demo_asset_btc" model="portfolio.asset">
+        <field name="name">Bitcoin</field>
+        <field name="portfolio_id" ref="demo_portfolio_family"/>
+        <field name="asset_type">crypto</field>
+        <field name="coingecko_id">bitcoin</field>
+    </record>
+    <record id="demo_asset_eth" model="portfolio.asset">
+        <field name="name">Ethereum</field>
+        <field name="portfolio_id" ref="demo_portfolio_family"/>
+        <field name="asset_type">crypto</field>
+        <field name="coingecko_id">ethereum</field>
+    </record>
+    <record id="demo_asset_aapl" model="portfolio.asset">
+        <field name="name">Apple Inc. (AAPL)</field>
+        <field name="portfolio_id" ref="demo_portfolio_family"/>
+        <field name="asset_type">stock</field>
+        <field name="symbol">AAPL</field>
+    </record>
+    <record id="demo_asset_flat" model="portfolio.asset">
+        <field name="name">Flat, Berlin</field>
+        <field name="portfolio_id" ref="demo_portfolio_family"/>
+        <field name="asset_type">real_estate</field>
+    </record>
+    <record id="demo_asset_cash" model="portfolio.asset">
+        <field name="name">Savings account</field>
+        <field name="portfolio_id" ref="demo_portfolio_family"/>
+        <field name="asset_type">cash</field>
+    </record>
+    <record id="demo_asset_private" model="portfolio.asset">
+        <field name="name">Index fund</field>
+        <field name="portfolio_id" ref="demo_portfolio_private"/>
+        <field name="asset_type">stock</field>
+    </record>
+
+    <!-- Ledger -->
+    <record id="demo_tx_btc_buy" model="portfolio.transaction">
+        <field name="asset_id" ref="demo_asset_btc"/>
+        <field name="tx_type">buy</field>
+        <field name="date">2026-01-15 10:00:00</field>
+        <field name="quantity">0.5</field>
+        <field name="price">42000</field>
+    </record>
+    <record id="demo_tx_btc_sell" model="portfolio.transaction">
+        <field name="asset_id" ref="demo_asset_btc"/>
+        <field name="tx_type">sell</field>
+        <field name="date">2026-05-02 09:30:00</field>
+        <field name="quantity">0.1</field>
+        <field name="price">64000</field>
+    </record>
+    <record id="demo_tx_eth_buy" model="portfolio.transaction">
+        <field name="asset_id" ref="demo_asset_eth"/>
+        <field name="tx_type">buy</field>
+        <field name="date">2026-02-10 12:00:00</field>
+        <field name="quantity">4</field>
+        <field name="price">2300</field>
+    </record>
+    <record id="demo_tx_aapl_buy" model="portfolio.transaction">
+        <field name="asset_id" ref="demo_asset_aapl"/>
+        <field name="tx_type">buy</field>
+        <field name="date">2026-03-03 15:00:00</field>
+        <field name="quantity">20</field>
+        <field name="price">190</field>
+    </record>
+    <record id="demo_tx_flat_buy" model="portfolio.transaction">
+        <field name="asset_id" ref="demo_asset_flat"/>
+        <field name="tx_type">buy</field>
+        <field name="date">2025-06-01 09:00:00</field>
+        <field name="quantity">1</field>
+        <field name="price">310000</field>
+    </record>
+    <record id="demo_tx_cash_in" model="portfolio.transaction">
+        <field name="asset_id" ref="demo_asset_cash"/>
+        <field name="tx_type">buy</field>
+        <field name="date">2026-01-02 08:00:00</field>
+        <field name="quantity">25000</field>
+        <field name="price">1</field>
+    </record>
+    <record id="demo_tx_private_buy" model="portfolio.transaction">
+        <field name="asset_id" ref="demo_asset_private"/>
+        <field name="tx_type">buy</field>
+        <field name="date">2026-04-01 10:00:00</field>
+        <field name="quantity">50</field>
+        <field name="price">110</field>
+    </record>
+
+    <!-- Market quotes the cron would normally fetch (so the demo works offline) -->
+    <function model="portfolio.asset" name="write">
+        <value model="portfolio.asset" eval="[ref('demo_asset_btc')]"/>
+        <value eval="{'current_price': 68000, 'price_source': 'coingecko', 'price_updated_at': '2026-10-20 08:00:00'}"/>
+    </function>
+    <function model="portfolio.asset" name="write">
+        <value model="portfolio.asset" eval="[ref('demo_asset_eth')]"/>
+        <value eval="{'current_price': 2600, 'price_source': 'coingecko', 'price_updated_at': '2026-10-20 08:00:00'}"/>
+    </function>
+    <function model="portfolio.asset" name="write">
+        <value model="portfolio.asset" eval="[ref('demo_asset_aapl')]"/>
+        <value eval="{'current_price': 215, 'price_source': 'manual', 'price_updated_at': '2026-10-20 08:00:00'}"/>
+    </function>
+    <function model="portfolio.asset" name="write">
+        <value model="portfolio.asset" eval="[ref('demo_asset_flat')]"/>
+        <value eval="{'current_price': 335000, 'price_source': 'manual', 'price_updated_at': '2026-09-01 08:00:00'}"/>
+    </function>
+</odoo>
