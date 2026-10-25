@@ -3,8 +3,8 @@
 Shared multi-asset portfolios (stocks, crypto, real estate, cash) with **per-portfolio roles**,
 an **append-only ledger**, a scheduled **CoinGecko price sync**, and a **live dashboard**.
 
-Built for the Talent Syria technical assessment. Design decisions and trade-offs are in
-[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+Built for the Talent Syria technical assessment. The plan, design decisions, and trade-offs are in
+[`docs/PLAN.md`](docs/PLAN.md).
 
 ## What is built (and what is not)
 
