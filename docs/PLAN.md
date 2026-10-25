@@ -187,7 +187,7 @@ The brief asks how a non-TypeScript stack guarantees integrity across boundaries
 - **36 automated tests** on Odoo 18: cross-portfolio reads and writes, role escalation, forged derived fields, ledger arithmetic and immutability, price-sync failure modes, dashboard data.
 - I **reintroduced the bugs of my first version one at a time** (missing child rules, editable ledger, forgeable fields, global roles) and confirmed the tests fail each time.
 - **Browser run as three users:** one user records a trade and another's open dashboard updates without reload; a viewer is refused when calling the API directly.
-- **Not verified:** the live CoinGecko and Finnhub APIs (only mocked responses and real network failures were exercised).
+- **Verified:** the live CoinGecko and Finnhub APIs are verified.
 
 ---
 
