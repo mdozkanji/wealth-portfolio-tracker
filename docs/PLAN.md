@@ -1,12 +1,7 @@
 # Wealth Portfolio Tracker: Technical Plan and Architecture
 
 Date Created: October 23, 2026 11:51 AM
-Folder: Professional
 Last Updated: October 25, 2026 9:33 AM
-Pinned: No
-Priority: High
-Status: Open
-Type: Documentation
 
 **Author:** Mofeed Dozkanji
 
